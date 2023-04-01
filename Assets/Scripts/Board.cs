@@ -16,8 +16,8 @@ public class Board : MonoBehaviour
 
     #region Functions (REGION)
 
-    private void SetupBoard() //Set the grid
-    {
+    private void SetupBoard()
+    {//Set the grid
         //Loops to position elements
         for (int x = 0; x < width; x++)
         {
@@ -71,7 +71,7 @@ public class Board : MonoBehaviour
         PositionCamera();
         SetupPieces();
     }
-
+    
 
     // Update is called once per frame
     void Update()

@@ -155,7 +155,7 @@ MonoBehaviour:
   width: 6
   height: 10
   tileObject: {fileID: 3803771977097594326, guid: c2399fe9d6ba4014bb568045b41a6831, type: 3}
-  cameraSizeOffset: 0
+  cameraSizeOffset: -1
   cameraVerticalOffset: 0
   availablePieces:
   - {fileID: 3252374572034823339, guid: 6adec478b23e3f14baf665c602db0bd0, type: 3}
