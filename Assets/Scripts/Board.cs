@@ -10,6 +10,7 @@ public class Board : MonoBehaviour
     [SerializeField] int width, height; //Size of the board (Each unit, represents one object)
     [SerializeField] GameObject tileObject; //Object to fill the board
     [SerializeField] float cameraSizeOffset, cameraVerticalOffset; // [0]OrthographicSize, [1]cameraVerticalPosition
+    public GameObject[] availablePieces;
 
     #endregion
 
@@ -24,7 +25,7 @@ public class Board : MonoBehaviour
             {
                 var o = Instantiate(tileObject, new Vector3(x, y, -5), Quaternion.identity); //Creating the element
                 o.transform.parent = transform; //Establishing the board as parent of the element
-                o.GetComponent<Tile>()?.Setup(x, y, this);
+                o.GetComponent<Tile>()?.Setup(x, y, this); //Setting the coordinates of the element
             }
         }
     }
@@ -46,6 +47,21 @@ public class Board : MonoBehaviour
         Camera.main.orthographicSize = horizontal > vertical ? horizontal + cameraSizeOffset: vertical + cameraVerticalOffset; 
     }
 
+    private void SetupPieces()
+    {
+        //Loops to position elements
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                var selectedPiece = availablePieces[UnityEngine.Random.Range(0, availablePieces.Length)]; //Selecting a random piece
+                var o = Instantiate(selectedPiece, new Vector3(x, y, -5), Quaternion.identity); //Creating the element
+                o.transform.parent = transform; //Establishing the board as parent of the element
+                o.GetComponent<Piece>()?.Setup(x, y, this); //Setting the coordinates of the piece
+            }
+        }
+    }
+
     #endregion
 
     // Start is called before the first frame update
@@ -53,6 +69,7 @@ public class Board : MonoBehaviour
     {
         SetupBoard();
         PositionCamera();
+        SetupPieces();
     }
 
 

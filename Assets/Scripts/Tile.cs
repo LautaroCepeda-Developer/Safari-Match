@@ -7,7 +7,7 @@ public class Tile : MonoBehaviour
     public int x, y;
     public Board board;
 
-    //Cordinate System for board
+    //Coordinate System for board
     public void Setup(int x_, int y_, Board board_)
     {
         x = x_;
