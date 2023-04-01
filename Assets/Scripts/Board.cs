@@ -10,7 +10,13 @@ public class Board : MonoBehaviour
     [SerializeField] int width, height; //Size of the board (Each unit, represents one object)
     [SerializeField] GameObject tileObject; //Object to fill the board
     [SerializeField] float cameraSizeOffset, cameraVerticalOffset; // [0]OrthographicSize, [1]cameraVerticalPosition
+
     public GameObject[] availablePieces;
+
+    public Tile[,] tiles;
+    public Piece[,] pieces;
+
+    Tile startTile, endTile;
 
     #endregion
 
@@ -25,7 +31,8 @@ public class Board : MonoBehaviour
             {
                 var o = Instantiate(tileObject, new Vector3(x, y, -5), Quaternion.identity); //Creating the element
                 o.transform.parent = transform; //Establishing the board as parent of the element
-                o.GetComponent<Tile>()?.Setup(x, y, this); //Setting the coordinates of the element
+                tiles[x, y] = o.GetComponent<Tile>();
+                tiles[x, y]?.Setup(x, y, this); //Setting the coordinates of the element
             }
         }
     }
@@ -57,25 +64,62 @@ public class Board : MonoBehaviour
                 var selectedPiece = availablePieces[UnityEngine.Random.Range(0, availablePieces.Length)]; //Selecting a random piece
                 var o = Instantiate(selectedPiece, new Vector3(x, y, -5), Quaternion.identity); //Creating the element
                 o.transform.parent = transform; //Establishing the board as parent of the element
-                o.GetComponent<Piece>()?.Setup(x, y, this); //Setting the coordinates of the piece
+                pieces[x, y] = o.GetComponent<Piece>();
+                pieces[x, y]?.Setup(x, y, this); //Setting the coordinates of the piece
             }
         }
     }
 
+    #region Movement of pieces (REGION)
+    private void SwapTiles()
+    {
+        //Selecting the pieces
+        var startPiece = pieces[startTile.x, startTile.y];
+        var endPiece = pieces[endTile.x, endTile.y];
+
+        //Swap the position of the pieces
+        startPiece.Move(endTile.x, endTile.y);
+        endPiece.Move(startTile.x, startTile.y);
+
+        //Updating the coordinates of the pieces
+        pieces[startTile.x, startTile.y] = endPiece;
+        pieces[endTile.x, endTile.y] = startPiece;
+    }
+
+    public void TileDown(Tile tile_)
+    {
+        startTile = tile_;
+    }
+
+    public void TileOver(Tile tile_)
+    {
+        endTile = tile_;
+    }
+
+    public void TileUp(Tile tile_)
+    {
+        if (startTile != null && endTile != null)
+        {
+            SwapTiles();
+        }
+        startTile = null;
+        endTile = null;
+    }
+    #endregion
+
     #endregion
 
     // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
+        //Instantiating the 2D_Array (CoordinateSystem)
+        tiles = new Tile[width, height];
+        pieces = new Piece[width, height];
+
+        //Setup the scene
         SetupBoard();
         PositionCamera();
         SetupPieces();
     }
-    
 
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
 }

@@ -13,6 +13,7 @@ public class Piece : MonoBehaviour
 
     #endregion
 
+    //List of pieces
     public enum PieceType
     { //List of pieces
         elephant,
@@ -31,7 +32,7 @@ public class Piece : MonoBehaviour
 
     public void Setup(int x_, int y_, Board board_)
     {
-        //Coordinate System for board
+        //Coordinate System for each piece
         x = x_;
         y = y_;
         board = board_;
@@ -42,6 +43,7 @@ public class Piece : MonoBehaviour
         //Move the piece
         transform.DOMove(new Vector3(desX, desY, -5), 0.25f).SetEase(Ease.InOutCubic).onComplete = () =>
         {
+            //Moving the piece to the other piece position
             x = desX;
             y = desY;
         };
