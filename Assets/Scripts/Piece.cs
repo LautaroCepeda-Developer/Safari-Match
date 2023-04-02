@@ -44,12 +44,16 @@ public class Piece : MonoBehaviour
     public void Move(int desX, int desY)
     {
         //Move the piece
-        transform.DOMove(new Vector3(desX, desY, -5), 0.25f).SetEase(Ease.InOutCubic).onComplete = () =>
-        {
-            //Moving the piece to the other piece position
-            x = desX;
-            y = desY;
-        };
+        if (gameObject != null && transform != null) {
+            transform.DOMove(new Vector3(desX, desY, -5), 0.25f).SetEase(Ease.InOutCubic).onComplete = () =>
+            {
+                //Moving the piece to the other piece position
+                x = desX;
+                y = desY;
+            };
+        }
+
+        
     }
 
     //Function to test the movement of the piece

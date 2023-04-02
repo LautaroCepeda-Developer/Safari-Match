@@ -13,6 +13,8 @@ public class Board : MonoBehaviour
     [SerializeField] GameObject tileObject; //Object to fill the board
     [SerializeField] float cameraSizeOffset, cameraVerticalOffset; // [0]OrthographicSize, [1]cameraVerticalPosition
 
+    public int pointsPerMatch;
+
     public GameObject[] availablePieces;
 
     public Tile[,] tiles;
@@ -106,8 +108,11 @@ public class Board : MonoBehaviour
     private void ClearPieceAt(int x, int y)
     {
         var pieceToClear = pieces[x, y];
-        pieceToClear.Remove(true);
-        pieces[x, y] = null;
+        if (pieceToClear != null) {
+            pieceToClear.Remove(true);
+            pieces[x, y] = null;
+        }
+
     }
 
     #region Movement of pieces (REGION)
@@ -118,6 +123,9 @@ public class Board : MonoBehaviour
         //Selecting the pieces
         var startPiece = pieces[startTile.x, startTile.y];
         var endPiece = pieces[endTile.x, endTile.y];
+
+        //audio
+        AudioManager.instance.Move();
 
         //Swap the position of the pieces
         startPiece.Move(endTile.x, endTile.y);
@@ -140,6 +148,8 @@ public class Board : MonoBehaviour
         //Reseting the position in case match wasn't found
         if (allMatches.Count == 0)
         {
+            AudioManager.instance.Miss();
+
             startPiece.Move(startTile.x, startTile.y);
             endPiece.Move(endTile.x, endTile.y);
             pieces[startTile.x, startTile.y] = startPiece;
@@ -148,6 +158,7 @@ public class Board : MonoBehaviour
         else
         {
             ClearPieces(allMatches);
+            AwardPoints(allMatches);
         }
 
         //Reseting the vars
@@ -169,6 +180,17 @@ public class Board : MonoBehaviour
         FindMatchsRecursively(collapsedPieces);
     }
 
+    private void ClearAllPieces()
+    {
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                ClearPieceAt(x, y);
+            }
+        }
+    }
+
     private void FindMatchsRecursively(List<Piece> collapsedPieces)
     {
         StartCoroutine(FindMatchsRecursivelyCoroutine(collapsedPieces));
@@ -185,6 +207,7 @@ public class Board : MonoBehaviour
             {
                 newMatches = newMatches.Union(matches).ToList();
                 ClearPieces(matches);
+                AwardPoints(matches);
             }
         });
 
@@ -249,18 +272,18 @@ public class Board : MonoBehaviour
 
     public void TileDown(Tile tile_)
     {
-        if (!swappingPieces) startTile = tile_;
+        if (!swappingPieces && GameManager.Instance.gameState == GameManager.GameState.Ingame) startTile = tile_;
 
     }
 
     public void TileOver(Tile tile_)
     {
-        if (!swappingPieces) endTile = tile_;
+        if (!swappingPieces && GameManager.Instance.gameState == GameManager.GameState.Ingame) endTile = tile_;
     }
 
     public void TileUp(Tile tile_)
     {
-        if (!swappingPieces)
+        if (!swappingPieces && GameManager.Instance.gameState == GameManager.GameState.Ingame)
         {
             if (startTile != null && endTile != null && IsCloseTo(startTile, endTile))
             {
@@ -307,7 +330,7 @@ public class Board : MonoBehaviour
             if (nextX >= 0 && nextX < width && nextY >= 0 && nextY < height)
             {
                 var nextPiece = pieces[nextX, nextY];
-                if (nextPiece != null && nextPiece.pieceType == startPiece.pieceType)
+                if (nextPiece != null && startPiece != null &&nextPiece.pieceType == startPiece.pieceType)
                 { //If the pieces match, then add to the array
                     matches.Add(nextPiece);
                 } else { break; } //If the pieces doesn't match, break the loop
@@ -371,6 +394,11 @@ public class Board : MonoBehaviour
         return foundMatches;
     }
 
+    public void AwardPoints(List<Piece> allMatches)
+    {
+        GameManager.Instance.AddPoints(allMatches.Count * pointsPerMatch);
+    }
+
     #endregion
 
 
@@ -385,7 +413,30 @@ public class Board : MonoBehaviour
         //Setup the scene
         SetupBoard();
         PositionCamera();
-        StartCoroutine(SetupPieces());
+
+        if (GameManager.Instance.gameState == GameManager.GameState.Ingame)
+        {
+            StartCoroutine(SetupPieces());
+        }
+        GameManager.Instance.onGameStateUpdated.AddListener(OnGameStateUpdated);
+    }
+
+    private void OnDestroy()
+    {
+        GameManager.Instance.onGameStateUpdated.RemoveListener(OnGameStateUpdated);
+    }
+
+    private void OnGameStateUpdated(GameManager.GameState newState)
+    {
+        if (newState == GameManager.GameState.Ingame)
+        {
+            StartCoroutine(SetupPieces());
+        }
+
+        if (newState == GameManager.GameState.GameOver)
+        {
+            ClearAllPieces();
+        }
     }
 
 }
