@@ -13,6 +13,8 @@ public class Board : MonoBehaviour
     [SerializeField] GameObject tileObject; //Object to fill the board
     [SerializeField] float cameraSizeOffset, cameraVerticalOffset; // [0]OrthographicSize, [1]cameraVerticalPosition
 
+    public int pointsPerMatch;
+
     public GameObject[] availablePieces;
 
     public Tile[,] tiles;
@@ -148,6 +150,7 @@ public class Board : MonoBehaviour
         else
         {
             ClearPieces(allMatches);
+            AwardPoints(allMatches);
         }
 
         //Reseting the vars
@@ -185,6 +188,7 @@ public class Board : MonoBehaviour
             {
                 newMatches = newMatches.Union(matches).ToList();
                 ClearPieces(matches);
+                AwardPoints(matches);
             }
         });
 
@@ -369,6 +373,11 @@ public class Board : MonoBehaviour
 
         //Returning the matches regardless of whether they meet or not
         return foundMatches;
+    }
+
+    public void AwardPoints(List<Piece> allMatches)
+    {
+        GameManager.Instance.AddPoints(allMatches.Count * pointsPerMatch);
     }
 
     #endregion
