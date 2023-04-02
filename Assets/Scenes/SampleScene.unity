@@ -162,12 +162,6 @@ MonoBehaviour:
   - {fileID: 4713458002965925154, guid: ff60e4be338ab8d42ab5cf91eaa2ff60, type: 3}
   - {fileID: 8405829148634390996, guid: 7964fc79575bd1a449b4e860f00f9215, type: 3}
   - {fileID: 7393771479495345593, guid: 20ff8efce4b06ac4b852c03fafd248e3, type: 3}
-  - {fileID: 6413376189378639480, guid: abd1c96d9c7117a4fa6ad3897c5a1b44, type: 3}
-  - {fileID: 9155842697492006901, guid: 923ed62af5500ec4486c478986eda2ab, type: 3}
-  - {fileID: 1816622563573052927, guid: 765b9abbe93a1144fba8c9c01cdcb952, type: 3}
-  - {fileID: 3457802006201012348, guid: 3c166571400dac74ca1c195bbd0f16ff, type: 3}
-  - {fileID: 5945557800774217849, guid: f206270acfe951f49b822766664b76e9, type: 3}
-  - {fileID: 8103151653300313953, guid: 3d1ccb5b39bc0a045ab598e23883472c, type: 3}
 --- !u!4 &507292093
 Transform:
   m_ObjectHideFlags: 0
