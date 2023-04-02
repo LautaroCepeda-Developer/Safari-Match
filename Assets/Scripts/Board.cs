@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Board : MonoBehaviour
@@ -17,6 +18,9 @@ public class Board : MonoBehaviour
     public Piece[,] pieces;
 
     Tile startTile, endTile;
+
+    private bool swappingPieces = false; //Currently Unused
+
 
     #endregion
 
@@ -71,7 +75,7 @@ public class Board : MonoBehaviour
     }
 
     #region Movement of pieces (REGION)
-    private void SwapTiles()
+    private IEnumerator SwapTiles()
     {
         //Selecting the pieces
         var startPiece = pieces[startTile.x, startTile.y];
@@ -84,6 +88,45 @@ public class Board : MonoBehaviour
         //Updating the coordinates of the pieces
         pieces[startTile.x, startTile.y] = endPiece;
         pieces[endTile.x, endTile.y] = startPiece;
+
+        //Waiting 0.6 seconds
+        yield return new WaitForSeconds(0.6f);
+
+        bool foundMatch = false;
+        var startMatches = GetMatchByPiece(startTile.x, startTile.y, 3);
+        var endMatches = GetMatchByPiece(endTile.x, endTile.y, 3);
+
+        //if match >= 3 destroy pieces
+        startMatches.ForEach(piece =>
+        { 
+            foundMatch = true;
+            pieces[piece.x, piece.y] = null;
+            Destroy(piece.gameObject);
+        });
+
+        //if match >= 3 destroy pieces
+        endMatches.ForEach(piece =>
+        { 
+            foundMatch = true;
+            pieces[piece.x, piece.y] = null;
+            Destroy(piece.gameObject);
+        });
+
+        //Reseting the position in case match wasn't found
+        if (!foundMatch)
+        { 
+            startPiece.Move(startTile.x, startTile.y);
+            endPiece.Move(endTile.x, endTile.y);
+            pieces[startTile.x, startTile.y] = startPiece;
+            pieces[endTile.x, endTile.y] = endPiece;
+        }
+
+        //Reseting the vars
+        startTile = null;
+        endTile = null;
+        swappingPieces = false; //Currently Unused
+
+        yield return null;
     }
 
     public void TileDown(Tile tile_)
@@ -100,10 +143,8 @@ public class Board : MonoBehaviour
     {
         if (startTile != null && endTile != null && IsCloseTo(startTile, endTile))
         {
-            SwapTiles();
+            StartCoroutine(SwapTiles());
         }
-        startTile = null;
-        endTile = null;
     }
 
     public bool IsCloseTo(Tile start, Tile end)
@@ -121,6 +162,76 @@ public class Board : MonoBehaviour
         return false;
     }
     #endregion
+
+    public List<Piece>GetMatchByDirection(int xpos, int ypos, Vector2 direction, int minPieces = 3)
+    {
+        List<Piece> matches = new List<Piece>(); //Creating a list
+        Piece startPiece = pieces[xpos, ypos]; //Setting the initial piece
+        matches.Add(startPiece); //Adding the initial piece to matches
+
+        //Vars for positions
+        int nextX, nextY;
+        int maxVal = width > height ? width : height;
+        
+        for (int i = 1; i < maxVal; i++)
+        {
+            //Searching a piece in the next position of 2D axes
+            nextX = xpos + ((int)direction.x * i);
+            nextY = ypos + ((int)direction.y * i);
+
+            //Limiting the search of pieces within the grid
+            if (nextX >= 0 && nextX < width && nextY >= 0 && nextY < height)
+            {
+                var nextPiece = pieces[nextX, nextY];
+                if (nextPiece != null && nextPiece.pieceType == startPiece.pieceType)
+                { //If the pieces match, then add to the array
+                    matches.Add(nextPiece);
+                } else { break; } //If the pieces doesn't match, break the loop
+            }
+        }//Loop end
+
+        if (matches.Count >= minPieces)
+        {
+            return matches;
+        }
+
+        return null; //Returns null if nothing matched.
+    }
+
+    public List<Piece>GetMatchByPiece(int xpos, int ypos, int minPieces = 3)
+    {
+        //Vars for search a match in each direction
+        var upMatchs = GetMatchByDirection(xpos, ypos, new Vector2(0, 1), 2);
+        var downMatchs = GetMatchByDirection(xpos, ypos, new Vector2(0, -1), 2);
+        var rightMatchs = GetMatchByDirection(xpos, ypos, new Vector2(1, 0), 2);
+        var leftMatchs = GetMatchByDirection(xpos, ypos, new Vector2(-1, 0), 2);
+
+        //Initializing variables with empty lists
+        if (upMatchs == null) upMatchs = new List<Piece>();
+        if (downMatchs == null) downMatchs = new List<Piece>();
+        if (rightMatchs == null) rightMatchs = new List<Piece>();
+        if (leftMatchs == null) leftMatchs = new List<Piece>();
+
+        //Creating the list of matches in the 2D axes
+        var verticalMatches = upMatchs.Union(downMatchs).ToList();
+        var horizontalMatches = leftMatchs.Union(rightMatchs).ToList();
+
+        //Creating the list of foundedMatches
+        var foundMatches = new List<Piece>();
+
+        //Adding the matched pieces to the list "foundMatches"
+        if (verticalMatches.Count >= minPieces)
+        {
+            foundMatches = foundMatches.Union(verticalMatches).ToList();
+        }
+        if (horizontalMatches.Count >= minPieces)
+        {
+            foundMatches = foundMatches.Union(horizontalMatches).ToList();
+        }
+
+        //Returning the matches regardless of whether they meet or not
+        return foundMatches;
+    }
 
     #endregion
 
