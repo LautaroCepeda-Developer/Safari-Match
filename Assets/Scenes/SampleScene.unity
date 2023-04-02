@@ -660,6 +660,9 @@ MonoBehaviour:
   onPointsUpdated:
     m_PersistentCalls:
       m_Calls: []
+  timeToMatch: 10
+  currentTimeToMatch: 0
+  gameState: 1
 --- !u!4 &1358557388
 Transform:
   m_ObjectHideFlags: 0
