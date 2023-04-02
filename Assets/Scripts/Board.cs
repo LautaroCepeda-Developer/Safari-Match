@@ -64,10 +64,11 @@ public class Board : MonoBehaviour
     private Piece CreatePieceAt(int x, int y)
     {
         var selectedPiece = availablePieces[UnityEngine.Random.Range(0, availablePieces.Length)]; //Selecting a random piece
-        var o = Instantiate(selectedPiece, new Vector3(x, y, -5), Quaternion.identity); //Creating the element
+        var o = Instantiate(selectedPiece, new Vector3(x, y + 1, -5), Quaternion.identity); //Creating the element
         o.transform.parent = transform; //Establishing the board as parent of the element
         pieces[x, y] = o.GetComponent<Piece>();
         pieces[x, y]?.Setup(x, y, this); //Setting the coordinates of the piece
+        pieces[x, y].Move(x, y);
         return pieces[x, y];
     }
 
@@ -105,7 +106,7 @@ public class Board : MonoBehaviour
     private void ClearPieceAt(int x, int y)
     {
         var pieceToClear = pieces[x, y];
-        Destroy(pieceToClear.gameObject);
+        pieceToClear.Remove(true);
         pieces[x, y] = null;
     }
 
