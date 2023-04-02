@@ -124,6 +124,9 @@ public class Board : MonoBehaviour
         var startPiece = pieces[startTile.x, startTile.y];
         var endPiece = pieces[endTile.x, endTile.y];
 
+        //audio
+        AudioManager.instance.Move();
+
         //Swap the position of the pieces
         startPiece.Move(endTile.x, endTile.y);
         endPiece.Move(startTile.x, startTile.y);
@@ -145,6 +148,8 @@ public class Board : MonoBehaviour
         //Reseting the position in case match wasn't found
         if (allMatches.Count == 0)
         {
+            AudioManager.instance.Miss();
+
             startPiece.Move(startTile.x, startTile.y);
             endPiece.Move(endTile.x, endTile.y);
             pieces[startTile.x, startTile.y] = startPiece;
