@@ -28,6 +28,8 @@ public class Board : MonoBehaviour
 
     private void SetupBoard()
     {//Set the grid
+        tiles = new Tile[width, height]; //Avoiding errors
+        
         //Loops to position elements
         for (int x = 0; x < width; x++)
         {
@@ -58,20 +60,49 @@ public class Board : MonoBehaviour
         Camera.main.orthographicSize = horizontal > vertical ? horizontal + cameraSizeOffset: vertical + cameraVerticalOffset; 
     }
 
+    private Piece CreatePieceAt(int x, int y)
+    {
+        var selectedPiece = availablePieces[UnityEngine.Random.Range(0, availablePieces.Length)]; //Selecting a random piece
+        var o = Instantiate(selectedPiece, new Vector3(x, y, -5), Quaternion.identity); //Creating the element
+        o.transform.parent = transform; //Establishing the board as parent of the element
+        pieces[x, y] = o.GetComponent<Piece>();
+        pieces[x, y]?.Setup(x, y, this); //Setting the coordinates of the piece
+        return pieces[x, y];
+    }
+
     private void SetupPieces()
     {
+        pieces = new Piece[width, height]; //Avoiding Errors
+        int maxIterations = 50;
+        int currentIteration = 0;
+
+
         //Loops to position elements
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
             {
-                var selectedPiece = availablePieces[UnityEngine.Random.Range(0, availablePieces.Length)]; //Selecting a random piece
-                var o = Instantiate(selectedPiece, new Vector3(x, y, -5), Quaternion.identity); //Creating the element
-                o.transform.parent = transform; //Establishing the board as parent of the element
-                pieces[x, y] = o.GetComponent<Piece>();
-                pieces[x, y]?.Setup(x, y, this); //Setting the coordinates of the piece
+                currentIteration = 0;
+                var newPiece = CreatePieceAt(x, y);
+                while (HasPreviousMatches(x, y))
+                {
+                    ClearPieceAt(x, y);
+                    newPiece = CreatePieceAt(x, y);
+                    currentIteration++;
+                    if (currentIteration > maxIterations)
+                    {
+                        break;
+                    }
+                }
             }
         }
+    }
+
+    private void ClearPieceAt(int x, int y)
+    {
+        var pieceToClear = pieces[x, y];
+        Destroy(pieceToClear.gameObject);
+        pieces[x, y] = null;
     }
 
     #region Movement of pieces (REGION)
@@ -98,18 +129,16 @@ public class Board : MonoBehaviour
 
         //if match >= 3 destroy pieces
         startMatches.ForEach(piece =>
-        { 
+        {
             foundMatch = true;
-            pieces[piece.x, piece.y] = null;
-            Destroy(piece.gameObject);
+            ClearPieceAt(piece.x, piece.y);
         });
 
         //if match >= 3 destroy pieces
         endMatches.ForEach(piece =>
-        { 
+        {
             foundMatch = true;
-            pieces[piece.x, piece.y] = null;
-            Destroy(piece.gameObject);
+            ClearPieceAt(piece.x, piece.y);
         });
 
         //Reseting the position in case match wasn't found
@@ -198,6 +227,20 @@ public class Board : MonoBehaviour
         return null; //Returns null if nothing matched.
     }
 
+    public bool HasPreviousMatches(int posX, int posY)
+    {
+        /*Searching a match in left direction, and down direction, because the creation of pieces
+        starts in the left-down corner*/
+        var downMatches = GetMatchByDirection(posX, posY, new Vector2(0, -1), 2);
+        var leftMatches = GetMatchByDirection(posX, posY, new Vector2(-1, 0), 2);
+
+        downMatches ??= new List<Piece>();
+        leftMatches ??= new List<Piece>();
+
+        return downMatches.Count > 0 || leftMatches.Count > 0;
+    }
+
+
     public List<Piece>GetMatchByPiece(int xpos, int ypos, int minPieces = 3)
     {
         //Vars for search a match in each direction
@@ -235,12 +278,14 @@ public class Board : MonoBehaviour
 
     #endregion
 
+
     // Start is called before the first frame update
     private void Start()
     {
         //Instantiating the 2D_Array (CoordinateSystem)
         tiles = new Tile[width, height];
         pieces = new Piece[width, height];
+
 
         //Setup the scene
         SetupBoard();
