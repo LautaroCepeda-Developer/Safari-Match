@@ -7,6 +7,7 @@ using UnityEngine;
 public class Board : MonoBehaviour
 {
     #region Variables (REGION)
+    [SerializeField] float timeBetweenPieces = 0.01f;
 
     [SerializeField] int width, height; //Size of the board (Each unit, represents one object)
     [SerializeField] GameObject tileObject; //Object to fill the board
@@ -70,32 +71,35 @@ public class Board : MonoBehaviour
         return pieces[x, y];
     }
 
-    private void SetupPieces()
+    private IEnumerator SetupPieces()
     {
-        pieces = new Piece[width, height]; //Avoiding Errors
         int maxIterations = 50;
         int currentIteration = 0;
-
 
         //Loops to position elements
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
             {
-                currentIteration = 0;
-                var newPiece = CreatePieceAt(x, y);
-                while (HasPreviousMatches(x, y))
+                yield return new WaitForSeconds(timeBetweenPieces);
+                if (pieces[x, y] == null)
                 {
-                    ClearPieceAt(x, y);
-                    newPiece = CreatePieceAt(x, y);
-                    currentIteration++;
-                    if (currentIteration > maxIterations)
+                    currentIteration = 0;
+                    var newPiece = CreatePieceAt(x, y);
+                    while (HasPreviousMatches(x, y))
                     {
-                        break;
+                        ClearPieceAt(x, y);
+                        newPiece = CreatePieceAt(x, y);
+                        currentIteration++;
+                        if (currentIteration > maxIterations)
+                        {
+                            break;
+                        }
                     }
                 }
             }
         }
+        yield return null;
     }
 
     private void ClearPieceAt(int x, int y)
@@ -108,6 +112,8 @@ public class Board : MonoBehaviour
     #region Movement of pieces (REGION)
     private IEnumerator SwapTiles()
     {
+        swappingPieces = true;
+
         //Selecting the pieces
         var startPiece = pieces[startTile.x, startTile.y];
         var endPiece = pieces[endTile.x, endTile.y];
@@ -185,6 +191,11 @@ public class Board : MonoBehaviour
         {
             var newCollapsedPieces = CollapseColumns(GetColumns(newMatches), 0.3f);
             FindMatchsRecursively(newCollapsedPieces);
+        } else
+        {
+            yield return new WaitForSeconds(0.1f);
+            StartCoroutine(SetupPieces());
+            swappingPieces = false;
         }
         yield return null;
     }
@@ -237,20 +248,26 @@ public class Board : MonoBehaviour
 
     public void TileDown(Tile tile_)
     {
-        startTile = tile_;
+        if (!swappingPieces) startTile = tile_;
+
     }
 
     public void TileOver(Tile tile_)
     {
-        endTile = tile_;
+        if (!swappingPieces) endTile = tile_;
     }
 
     public void TileUp(Tile tile_)
     {
-        if (startTile != null && endTile != null && IsCloseTo(startTile, endTile))
+        if (!swappingPieces)
         {
-            StartCoroutine(SwapTiles());
+            if (startTile != null && endTile != null && IsCloseTo(startTile, endTile))
+            {
+
+                StartCoroutine(SwapTiles());
+            }
         }
+
     }
 
     public bool IsCloseTo(Tile start, Tile end)
@@ -367,7 +384,7 @@ public class Board : MonoBehaviour
         //Setup the scene
         SetupBoard();
         PositionCamera();
-        SetupPieces();
+        StartCoroutine(SetupPieces());
     }
 
 }
