@@ -123,31 +123,24 @@ public class Board : MonoBehaviour
         //Waiting 0.6 seconds
         yield return new WaitForSeconds(0.6f);
 
-        bool foundMatch = false;
         var startMatches = GetMatchByPiece(startTile.x, startTile.y, 3);
         var endMatches = GetMatchByPiece(endTile.x, endTile.y, 3);
 
-        //if match >= 3 destroy pieces
-        startMatches.ForEach(piece =>
-        {
-            foundMatch = true;
-            ClearPieceAt(piece.x, piece.y);
-        });
+        var allMatches = startMatches.Union(endMatches).ToList();
 
-        //if match >= 3 destroy pieces
-        endMatches.ForEach(piece =>
-        {
-            foundMatch = true;
-            ClearPieceAt(piece.x, piece.y);
-        });
+
 
         //Reseting the position in case match wasn't found
-        if (!foundMatch)
-        { 
+        if (allMatches.Count == 0)
+        {
             startPiece.Move(startTile.x, startTile.y);
             endPiece.Move(endTile.x, endTile.y);
             pieces[startTile.x, startTile.y] = startPiece;
             pieces[endTile.x, endTile.y] = endPiece;
+        }
+        else
+        {
+            ClearPieces(allMatches);
         }
 
         //Reseting the vars
@@ -156,6 +149,62 @@ public class Board : MonoBehaviour
         swappingPieces = false; //Currently Unused
 
         yield return null;
+    }
+
+    private void ClearPieces(List<Piece> piecesToClear)
+    {
+        piecesToClear.ForEach(piece =>
+        {
+            ClearPieceAt(piece.x, piece.y);
+        });
+        List<int> columns = GetColumns(piecesToClear);
+        List<Piece> collapsedPieces = CollapseColumns(columns, 0.3f);
+    }
+
+    private List<Piece> CollapseColumns(List<int> columns, float timeToCollapse)
+    {
+        List<Piece> movingPieces = new List<Piece>();
+
+        for (int i = 0; i < columns.Count; i++)
+        {
+            var column = columns[i];
+            for (int y = 0; y < height; y++)
+            {
+                if (pieces[column, y] == null)
+                {
+                    for (int yplus = y + 1; yplus < height; yplus++)
+                    {
+                        if (pieces[column, yplus] != null)
+                        {
+                            pieces[column, yplus].Move(column, y);
+                            pieces[column, y] = pieces[column, yplus];
+                            if (!movingPieces.Contains(pieces[column, y]))
+                            {
+                                movingPieces.Add(pieces[column, y]);
+                            }
+                            pieces[column, yplus] = null;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        return movingPieces;
+    }
+
+    private List<int> GetColumns(List<Piece> piecesToClear)
+    {
+        var result = new List<int>();
+
+        piecesToClear.ForEach(piece =>
+        {
+            if (!result.Contains(piece.x))
+            {
+                result.Add(piece.x);
+            }
+        });
+
+        return result;
     }
 
     public void TileDown(Tile tile_)
