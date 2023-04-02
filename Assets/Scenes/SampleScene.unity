@@ -738,6 +738,7 @@ GameObject:
   - component: {fileID: 939075722}
   - component: {fileID: 939075724}
   - component: {fileID: 939075723}
+  - component: {fileID: 939075725}
   m_Layer: 5
   m_Name: GameOver
   m_TagString: Untagged
@@ -804,6 +805,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 939075721}
   m_CullTransparentMesh: 1
+--- !u!114 &939075725
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 939075721}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9311baf49ecd7d9448ab5a9f46837c80, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  containerRect: {fileID: 1946892708}
+  containerCanvas: {fileID: 1946892709}
+  background: {fileID: 939075723}
+  visibleState: 2
+  transitionTime: 1.2
 --- !u!1 &980332786
 GameObject:
   m_ObjectHideFlags: 0
@@ -1373,6 +1391,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   points: 0
   onPointsUpdated:
+    m_PersistentCalls:
+      m_Calls: []
+  onGameStateUpdated:
     m_PersistentCalls:
       m_Calls: []
   timeToMatch: 10
