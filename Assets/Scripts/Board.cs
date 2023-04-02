@@ -175,6 +175,17 @@ public class Board : MonoBehaviour
         FindMatchsRecursively(collapsedPieces);
     }
 
+    private void ClearAllPieces()
+    {
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                ClearPieceAt(x, y);
+            }
+        }
+    }
+
     private void FindMatchsRecursively(List<Piece> collapsedPieces)
     {
         StartCoroutine(FindMatchsRecursivelyCoroutine(collapsedPieces));
@@ -397,7 +408,30 @@ public class Board : MonoBehaviour
         //Setup the scene
         SetupBoard();
         PositionCamera();
-        StartCoroutine(SetupPieces());
+
+        if (GameManager.Instance.gameState == GameManager.GameState.Ingame)
+        {
+            StartCoroutine(SetupPieces());
+        }
+        GameManager.Instance.onGameStateUpdated.AddListener(OnGameStateUpdated);
+    }
+
+    private void OnDestroy()
+    {
+        GameManager.Instance.onGameStateUpdated.RemoveListener(OnGameStateUpdated);
+    }
+
+    private void OnGameStateUpdated(GameManager.GameState newState)
+    {
+        if (newState == GameManager.GameState.Ingame)
+        {
+            StartCoroutine(SetupPieces());
+        }
+
+        if (newState == GameManager.GameState.GameOver)
+        {
+            ClearAllPieces();
+        }
     }
 
 }

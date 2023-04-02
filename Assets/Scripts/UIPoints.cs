@@ -13,6 +13,22 @@ public class UIPoints : MonoBehaviour
     private void Start()
     {
         GameManager.Instance.onPointsUpdated.AddListener(UpdatePoints);
+        GameManager.Instance.onGameStateUpdated.AddListener(GameStateUpdated);
+    }
+
+    private void OnDestroy()
+    {
+        GameManager.Instance.onPointsUpdated.RemoveListener(UpdatePoints);
+        GameManager.Instance.onGameStateUpdated.RemoveListener(GameStateUpdated);
+    }
+
+    private void GameStateUpdated(GameManager.GameState newState)
+    {
+        if (newState == GameManager.GameState.GameOver)
+        {
+            displayedPoints = 0;
+            pointsLabel.text = displayedPoints.ToString();
+        }
     }
 
     private void UpdatePoints()
