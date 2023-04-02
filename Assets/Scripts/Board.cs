@@ -108,8 +108,11 @@ public class Board : MonoBehaviour
     private void ClearPieceAt(int x, int y)
     {
         var pieceToClear = pieces[x, y];
-        pieceToClear.Remove(true);
-        pieces[x, y] = null;
+        if (pieceToClear != null) {
+            pieceToClear.Remove(true);
+            pieces[x, y] = null;
+        }
+
     }
 
     #region Movement of pieces (REGION)
@@ -311,7 +314,7 @@ public class Board : MonoBehaviour
             if (nextX >= 0 && nextX < width && nextY >= 0 && nextY < height)
             {
                 var nextPiece = pieces[nextX, nextY];
-                if (nextPiece != null && nextPiece.pieceType == startPiece.pieceType)
+                if (nextPiece != null && startPiece != null &&nextPiece.pieceType == startPiece.pieceType)
                 { //If the pieces match, then add to the array
                     matches.Add(nextPiece);
                 } else { break; } //If the pieces doesn't match, break the loop
